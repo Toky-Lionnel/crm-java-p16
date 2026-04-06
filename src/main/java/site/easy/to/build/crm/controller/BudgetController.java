@@ -1,7 +1,6 @@
 package site.easy.to.build.crm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,8 +40,8 @@ public class BudgetController {
     
     @GetMapping("/manager/show-all")
     public String getAllContracts(Model model) {
-        List<Budget> contracts = budgetService.findAll();
-        model.addAttribute("contracts", contracts);
+        List<Budget> budgets = budgetService.findAll();
+        model.addAttribute("budgets", budgets);
         return "budget/budgets";
     }
 

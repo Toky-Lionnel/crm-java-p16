@@ -8,6 +8,7 @@ import site.easy.to.build.crm.entity.Budget;
 import site.easy.to.build.crm.entity.Contract;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.repository.BudgetRepository;
+import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.repository.BudgetRepository;
 
 import java.util.List;
@@ -16,9 +17,11 @@ import java.util.List;
 public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;
+    private final CustomerRepository customerRepository;
 
-    public BudgetServiceImpl(BudgetRepository budgetRepository) {
+    public BudgetServiceImpl(BudgetRepository budgetRepository, CustomerRepository customerRepository) {
         this.budgetRepository = budgetRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Override
@@ -33,6 +36,9 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public Budget save(Budget budget) {
+        Customer c = budget.getCustomer();
+        c.setBudget(c.getBudget().add(budget.getAmount()));
+        customerRepository.save(c);
         budgetRepository.save(budget);
         return budget;
     }
