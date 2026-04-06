@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `budget`(
    constraint `fk_budget_customer` foreign key (`customer_id`) references `customer` (`customer_id`) on delete cascade
 ) ENGINE=InnoDB;
 
-ALTER TABLE `trigger_ticket` ADD COLUMN `amount` DECIMAL(25,2);
-ALTER TABLE `trigger_lead` ADD COLUMN `amount` DECIMAL (25,2);
+ALTER TABLE `trigger_ticket` ADD COLUMN `amount` DECIMAL(25,2) DEFAULT 0.00;
+ALTER TABLE `trigger_lead` ADD COLUMN `amount` DECIMAL (25,2) DEFAULT 0.00;
 
 ALTER TABLE `customer` ADD COLUMN `budget` DECIMAL(25,2) DEFAULT 0.00;

@@ -1,11 +1,8 @@
 package site.easy.to.build.crm.service.budget;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import site.easy.to.build.crm.entity.Budget;
-import site.easy.to.build.crm.entity.Contract;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.repository.BudgetRepository;
 import site.easy.to.build.crm.repository.CustomerRepository;

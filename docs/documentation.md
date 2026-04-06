@@ -19,3 +19,5 @@ public ResponseEntity<List<Budget>> getAllContractsJson() {
     return ResponseEntity.ok(budgets);
 }
 ```
+
+5. Gestion ana roles anaty SecurityConfig mila jerena tsara
