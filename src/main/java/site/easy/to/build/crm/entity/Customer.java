@@ -5,9 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import jakarta.validation.groups.Default;
 import site.easy.to.build.crm.customValidations.customer.UniqueEmail;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -73,6 +75,19 @@ public class Customer {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "budget", nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.00", inclusive = true, message = "Budget must be greater than or equal to 0.00")
+    @DecimalMax(value = "9999999.99", inclusive = true, message = "Budget must be less than or equal to 9999999.99")
+    private BigDecimal budget;
+
+    public BigDecimal getBudget() {
+        return budget;
+    }
+
+    public void setBudget(BigDecimal budget) {
+        this.budget = budget;
+    }
 
     public Customer() {
     }

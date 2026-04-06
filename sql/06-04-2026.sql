@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS `budget`(
 ALTER TABLE `trigger_ticket` ADD COLUMN `amount` DECIMAL(25,2);
 ALTER TABLE `trigger_lead` ADD COLUMN `amount` DECIMAL (25,2);
 
+ALTER TABLE `customer` ADD COLUMN `budget` DECIMAL(25,2) DEFAULT 0.00;
