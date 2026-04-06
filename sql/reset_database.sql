@@ -12,6 +12,7 @@ TRUNCATE TABLE `ticket_settings`;
 TRUNCATE TABLE `contract_settings`;
 TRUNCATE TABLE `lead_settings`;
 TRUNCATE TABLE `lead_action`;
+TRUNCATE TABLE `budget`; -- Nouvelle table créée dans 06-04-2026.sql
 TRUNCATE TABLE `trigger_ticket`;
 TRUNCATE TABLE `trigger_contract`;
 TRUNCATE TABLE `trigger_lead`;
