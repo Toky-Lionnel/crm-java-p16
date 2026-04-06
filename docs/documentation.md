@@ -7,3 +7,15 @@
 ```
 
 2. Jerena tsara ny userRoles : atao admin par défaut ny compte ampiasaina 
+
+
+3. Service : interface ray de classe ray hanaovana implementation
+
+4. Exemple si on veut du JSON 
+```java 
+@GetMapping(value = "/manager/show-all/json", produces = "application/json")
+public ResponseEntity<List<Budget>> getAllContractsJson() {
+    List<Budget> budgets = budgetService.findAll();
+    return ResponseEntity.ok(budgets);
+}
+```
