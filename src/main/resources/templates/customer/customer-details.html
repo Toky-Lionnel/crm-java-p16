@@ -130,6 +130,27 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Budgets</h4>
+                            <div class="table-responsive m-t-40">
+                                <table id="config-table" class="table display table-bordered table-striped no-wrap">
+                                    <thead>
+                                    <tr>
+                                        <th>Amount</th>
+                                        <th>Created At</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:if="${budgets != null}" th:each="budget : ${budgets}">
+                                        <td th:text="${budget.amount}"></td>
+                                        <td th:text="${budget.formattedCreatedAt}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                 </div>
             </div>
             <!-- ============================================================== -->
