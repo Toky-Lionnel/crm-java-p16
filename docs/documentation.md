@@ -5,3 +5,5 @@
 ```java
     {{customer.info}} // raha Null ilay info dia manao erreur ilay Thymeleaf
 ```
+
+2. Jerena tsara ny userRoles : atao admin par défaut ny compte ampiasaina 

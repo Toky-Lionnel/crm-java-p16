@@ -3,8 +3,6 @@
 -- Conserve uniquement les données de la table `roles`
 -- =====================================================
 
--- USE `crm`;
-
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Tables dépendantes des utilisateurs et clients
