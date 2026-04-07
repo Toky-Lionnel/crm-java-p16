@@ -11,11 +11,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import site.easy.to.build.crm.entity.*;
 import site.easy.to.build.crm.entity.settings.TicketEmailSettings;
 import site.easy.to.build.crm.google.service.acess.GoogleAccessService;
 import site.easy.to.build.crm.google.service.gmail.GoogleGmailApiService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.parametre.ParametreService;
 import site.easy.to.build.crm.service.settings.TicketEmailSettingsService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
@@ -42,10 +44,11 @@ public class TicketController {
     private final GoogleGmailApiService googleGmailApiService;
     private final EntityManager entityManager;
 
+    private final ParametreService parametreService;
 
     @Autowired
     public TicketController(TicketService ticketService, AuthenticationUtils authenticationUtils, UserService userService, CustomerService customerService,
-                            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager) {
+                            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager, ParametreService parametreService) {
         this.ticketService = ticketService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -53,6 +56,7 @@ public class TicketController {
         this.ticketEmailSettingsService = ticketEmailSettingsService;
         this.googleGmailApiService = googleGmailApiService;
         this.entityManager = entityManager;
+        this.parametreService = parametreService;
     }
 
     @GetMapping("/show-ticket/{id}")
@@ -124,8 +128,10 @@ public class TicketController {
 
     @PostMapping("/create-ticket")
     public String createTicket(@ModelAttribute("ticket") @Validated Ticket ticket, BindingResult bindingResult, @RequestParam("customerId") int customerId,
-                               @RequestParam Map<String, String> formParams, Model model,
-                               @RequestParam("employeeId") int employeeId, Authentication authentication) {
+                               Model model, @RequestParam("employeeId") int employeeId,
+                               @RequestParam(value = "alertAcknowledged", defaultValue = "false") boolean alertAcknowledged,
+                               @RequestParam(value = "alertSignature", required = false) String alertSignature,
+                               Authentication authentication) {
 
         int userId = authenticationUtils.getLoggedInUserId(authentication);
         User manager = userService.findById(userId);
@@ -135,20 +141,13 @@ public class TicketController {
         if(manager.isInactiveUser()) {
             return "error/account-inactive";
         }
+
+        String currentAlertSignature = buildCreateTicketSignature(ticket, employeeId, customerId);
+
         if(bindingResult.hasErrors()) {
-            List<User> employees = new ArrayList<>();
-            List<Customer> customers;
-
-            if(AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
-                employees = userService.findAll();
-                customers = customerService.findAll();
-            } else {
-                employees.add(manager);
-                customers = customerService.findByUserId(manager.getId());
-            }
-
-            model.addAttribute("employees",employees);
-            model.addAttribute("customers",customers);
+            prepareCreateTicketFormModel(model, authentication, manager, employeeId, customerId);
+            model.addAttribute("alertAcknowledged", alertAcknowledged);
+            model.addAttribute("alertSignature", alertSignature);
             return "ticket/create-ticket";
         }
 
@@ -169,9 +168,60 @@ public class TicketController {
         ticket.setEmployee(employee);
         ticket.setCreatedAt(LocalDateTime.now());
 
-        ticketService.save(ticket);
+        double totalDepenses = customerService.calculateTotalDepenses(customerId);
+        boolean shouldCheckAlerte = !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
 
+        if (shouldCheckAlerte) {
+            boolean isTauxAlerteDepasse = parametreService.isTauxAlerteDepasse(
+                    totalDepenses + ticket.getAmount().doubleValue(),
+                    customer.getBudget().doubleValue()
+            );
+
+            if (isTauxAlerteDepasse) {
+                prepareCreateTicketFormModel(model, authentication, manager, employeeId, customerId);
+                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client. Cliquez à nouveau sur \"Create ticket\" pour confirmer.");
+                model.addAttribute("alertAcknowledged", true);
+                model.addAttribute("alertSignature", currentAlertSignature);
+                return "ticket/create-ticket";
+            }
+        }
+
+        ticketService.save(ticket);
         return "redirect:/employee/ticket/assigned-tickets";
+    }
+
+    private void prepareCreateTicketFormModel(Model model, Authentication authentication, User manager, int employeeId, int customerId) {
+        List<User> employees = new ArrayList<>();
+        List<Customer> customers;
+
+        if(AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
+            employees = userService.findAll();
+            customers = customerService.findAll();
+        } else {
+            employees.add(manager);
+            customers = customerService.findByUserId(manager.getId());
+        }
+
+        model.addAttribute("employees", employees);
+        model.addAttribute("customers", customers);
+        model.addAttribute("selectedEmployeeId", employeeId);
+        model.addAttribute("selectedCustomerId", customerId);
+    }
+
+    private String buildCreateTicketSignature(Ticket ticket, int employeeId, int customerId) {
+        return String.join("|",
+                normalize(ticket.getSubject()),
+                normalize(ticket.getDescription()),
+                normalize(ticket.getStatus()),
+                normalize(ticket.getPriority()),
+                ticket.getAmount() != null ? ticket.getAmount().stripTrailingZeros().toPlainString() : "",
+                String.valueOf(employeeId),
+                String.valueOf(customerId)
+        );
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 
     @GetMapping("/update-ticket/{id}")

@@ -70,7 +70,12 @@
                     <div class="card">
                         <div class="card-body">
                             <h4 class="card-title">Create New Ticket</h4>
+                            <div th:if="${alertMessage != null}" class="alert alert-warning" role="alert">
+                                <span th:text="${alertMessage}"></span>
+                            </div>
                             <form th:object="${ticket}" th:action="@{/employee/ticket/create-ticket}" method="post">
+                                <input type="hidden" name="alertAcknowledged" th:value="${alertAcknowledged != null ? alertAcknowledged : false}">
+                                <input type="hidden" name="alertSignature" th:value="${alertSignature != null ? alertSignature : ''}">
 
                                 <label class="m-t-20" for="subject">Subject:</label>
                                 <div class="input-group">
@@ -135,14 +140,16 @@
                                 <label class="m-t-20" for="employeeId">Assign Employee:</label>
                                 <div class="input-group">
                                     <select name="employeeId" id="employeeId" class="form-control">
-                                        <option th:each="employee : ${employees}" th:text="${employee.username}" th:value="${employee.id}"></option>
+                                        <option th:each="employee : ${employees}" th:text="${employee.username}" th:value="${employee.id}"
+                                                th:selected="${selectedEmployeeId != null and employee.id == selectedEmployeeId}"></option>
                                     </select>
                                 </div>
 
                                 <label class="m-t-20" for="customerId">Customer:</label>
                                 <div class="input-group">
                                     <select name="customerId" id="customerId" class="form-control">
-                                        <option th:each="customer : ${customers}" th:text="${customer.name}" th:value="${customer.customerId}"></option>
+                                        <option th:each="customer : ${customers}" th:text="${customer.name}" th:value="${customer.customerId}"
+                                                th:selected="${selectedCustomerId != null and customer.customerId == selectedCustomerId}"></option>
                                     </select>
                                 </div>
 
