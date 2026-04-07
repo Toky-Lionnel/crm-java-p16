@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import site.easy.to.build.crm.dto.TicketDto;
 import site.easy.to.build.crm.dto.TicketRequestDto;
+import site.easy.to.build.crm.dto.UpdateAmountRequest;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Ticket;
 import site.easy.to.build.crm.entity.User;
@@ -17,6 +18,7 @@ import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.AuthenticationUtils;
 import site.easy.to.build.crm.util.AuthorizationUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -152,6 +154,33 @@ public class TicketRestController {
         Ticket updatedTicket = ticketService.save(ticket);
         return ResponseEntity.ok(toDto(updatedTicket));
     }
+
+
+    @PutMapping("/{id}/amount")
+    public ResponseEntity<TicketDto> updateTicketAmount(
+            @PathVariable("id") int id,
+            @RequestBody UpdateAmountRequest request,
+            Authentication authentication) {
+
+        double amount = request.getAmount();
+
+        User loggedInUser = getActiveLoggedInUser(authentication);
+
+        Ticket ticket = ticketService.findByTicketId(id);
+        if (ticket == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found");
+        }
+
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")
+                && !AuthorizationUtil.checkIfUserAuthorized(ticket.getEmployee(), loggedInUser)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        ticket.setAmount(BigDecimal.valueOf(amount));
+        Ticket updatedTicket = ticketService.save(ticket);
+        return ResponseEntity.ok(toDto(updatedTicket));
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable("id") int id, Authentication authentication) {

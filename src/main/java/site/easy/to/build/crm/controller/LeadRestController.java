@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import site.easy.to.build.crm.dto.LeadDto;
 import site.easy.to.build.crm.dto.LeadRequestDto;
+import site.easy.to.build.crm.dto.UpdateAmountRequest;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.User;
@@ -17,6 +18,7 @@ import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.AuthenticationUtils;
 import site.easy.to.build.crm.util.AuthorizationUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -142,6 +144,29 @@ public class LeadRestController {
         Lead updatedLead = leadService.save(lead);
         return ResponseEntity.ok(toDto(updatedLead));
     }
+
+
+
+    @PutMapping("/{id}/amount")
+    public ResponseEntity<LeadDto> updateLeadAmount(@PathVariable("id") int id,
+                                                    @Valid @RequestBody UpdateAmountRequest request,
+                                                    Authentication authentication) {
+        User loggedInUser = getActiveLoggedInUser(authentication);
+
+        Lead lead = leadService.findByLeadId(id);
+        if (lead == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lead not found");
+        }
+
+        if (!AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")
+                && !AuthorizationUtil.checkIfUserAuthorized(lead.getEmployee(), loggedInUser)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+        lead.setAmount(BigDecimal.valueOf(request.getAmount()));
+        Lead updatedLead = leadService.save(lead);
+        return ResponseEntity.ok(toDto(updatedLead));
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLead(@PathVariable("id") int id, Authentication authentication) {

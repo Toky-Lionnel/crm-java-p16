@@ -9,3 +9,6 @@ CREATE TABLE IF NOT EXISTS `parametre` (
 
 INSERT INTO `parametre` (`nom`, `valeur`, `type`) VALUES
 ('taux_alerte', '15.20', 'decimal');
+
+UPDATE trigger_ticket SET status = 'open';
+UPDATE trigger_ticket SET priority = 'high';
