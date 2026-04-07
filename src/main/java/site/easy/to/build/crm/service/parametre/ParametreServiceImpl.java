@@ -39,4 +39,21 @@ public class ParametreServiceImpl implements ParametreService {
     public void delete(Parametre parametre) {
         parametreRepository.delete(parametre);
     }
+
+    @Override
+    public boolean isTauxAlerteDepasse(double depense, double budget) {
+        Parametre parametre = parametreRepository.findByNom("taux_alerte");
+        if (parametre != null) {
+            try {
+                double tauxAlerte = Double.parseDouble(parametre.getValeur());
+                double seuilAlerte = budget * (tauxAlerte / 100);
+                return depense >= seuilAlerte;
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
+    }
+
 }

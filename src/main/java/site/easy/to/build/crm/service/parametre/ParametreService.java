@@ -16,4 +16,6 @@ public interface ParametreService {
 
     public void delete(Parametre parametre);
 
+    public boolean isTauxAlerteDepasse(double depense, double budget);
+
 }
