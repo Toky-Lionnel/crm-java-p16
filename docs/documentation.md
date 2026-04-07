@@ -21,3 +21,5 @@ public ResponseEntity<List<Budget>> getAllContractsJson() {
 ```
 
 5. Gestion ana roles anaty SecurityConfig mila jerena tsara
+
+6. Mandalo SecurityConfig aloha ny requete vao mandalo Controller , raha ohatra ka bloqué any am SecurityConfig dia misy problème ana CORS foana 

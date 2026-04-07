@@ -9,6 +9,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import site.easy.to.build.crm.dto.LoginRequest;
 import site.easy.to.build.crm.dto.LoginResponse;
@@ -43,6 +46,12 @@ public class AuthController {
             // Authentifier via AuthenticationManager
             Authentication authentication = authenticationManager.authenticate(authToken);
 
+            // Persist authentication in Spring Security session context
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+            SecurityContextHolder.setContext(securityContext);
+            httpSession.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+
             // Récupérer les rôles/authorities
             List<String> roles = authentication.getAuthorities()
                 .stream()
@@ -70,6 +79,7 @@ public class AuthController {
 
     @GetMapping("/logout")
     public ResponseEntity<LoginResponse> logout() {
+        SecurityContextHolder.clearContext();
         httpSession.invalidate();
         return ResponseEntity.ok(new LoginResponse(true, "Logged out successfully"));
     }
