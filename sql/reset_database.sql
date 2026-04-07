@@ -24,6 +24,7 @@ TRUNCATE TABLE `user_profile`;
 TRUNCATE TABLE `oauth_users`;
 TRUNCATE TABLE `employee`;
 TRUNCATE TABLE `users`;
+TRUNCATE TABLE `parametre`; -- Nouvelle table créée dans 07-04-2026.sql
 
 -- La table `roles` est volontairement conservée telle quelle.
 
