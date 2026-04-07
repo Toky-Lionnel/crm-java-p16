@@ -30,6 +30,7 @@ import site.easy.to.build.crm.service.drive.GoogleDriveFileService;
 import site.easy.to.build.crm.service.file.FileService;
 import site.easy.to.build.crm.service.lead.LeadActionService;
 import site.easy.to.build.crm.service.lead.LeadService;
+import site.easy.to.build.crm.service.parametre.ParametreService;
 import site.easy.to.build.crm.service.settings.LeadEmailSettingsService;
 import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.*;
@@ -60,12 +61,14 @@ public class LeadController {
     private final LeadEmailSettingsService leadEmailSettingsService;
     private final GoogleGmailApiService googleGmailApiService;
     private final EntityManager entityManager;
+    private final ParametreService parametreService;
 
     @Autowired
     public LeadController(LeadService leadService, AuthenticationUtils authenticationUtils, UserService userService, CustomerService customerService,
                           LeadActionService leadActionService, GoogleCalendarApiService googleCalendarApiService, FileService fileService,
                           GoogleDriveApiService googleDriveApiService, GoogleDriveFileService googleDriveFileService, FileUtil fileUtil,
-                          LeadEmailSettingsService leadEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager) {
+                          LeadEmailSettingsService leadEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager,
+                          ParametreService parametreService) {
         this.leadService = leadService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -79,6 +82,7 @@ public class LeadController {
         this.leadEmailSettingsService = leadEmailSettingsService;
         this.googleGmailApiService = googleGmailApiService;
         this.entityManager = entityManager;
+        this.parametreService = parametreService;
     }
 
     @GetMapping("/show/{id}")
@@ -168,7 +172,9 @@ public class LeadController {
     public String createLead(@ModelAttribute("lead") @Validated Lead lead, BindingResult bindingResult,
                              @RequestParam("customerId") int customerId, @RequestParam("employeeId") int employeeId,
                              Authentication authentication, @RequestParam("allFiles")@Nullable String files,
-                             @RequestParam("folderId") @Nullable String folderId, Model model) throws JsonProcessingException {
+                             @RequestParam("folderId") @Nullable String folderId, Model model,
+                             @RequestParam(value = "alertAcknowledged", defaultValue = "false") boolean alertAcknowledged,
+                             @RequestParam(value = "alertSignature", required = false) String alertSignature) throws JsonProcessingException {
 
         int userId = authenticationUtils.getLoggedInUserId(authentication);
         User manager = userService.findById(userId);
@@ -176,9 +182,15 @@ public class LeadController {
             return "error/account-inactive";
         }
 
+        String currentAlertSignature = buildCreateLeadSignature(lead, employeeId, customerId);
+
         if(bindingResult.hasErrors()) {
             User user = userService.findById(userId);
             populateModelAttributes(model, authentication, user);
+            model.addAttribute("selectedEmployeeId", employeeId);
+            model.addAttribute("selectedCustomerId", customerId);
+            model.addAttribute("alertAcknowledged", alertAcknowledged);
+            model.addAttribute("alertSignature", alertSignature);
             return "lead/create-lead";
         }
 
@@ -192,6 +204,26 @@ public class LeadController {
         lead.setManager(manager);
         lead.setGoogleDriveFolderId(folderId);
         lead.setCreatedAt(LocalDateTime.now());
+
+        double totalDepenses = customerService.calculateTotalDepenses(customerId);
+        boolean shouldCheckAlerte = shouldVerifyTauxAlerte(alertAcknowledged, alertSignature, currentAlertSignature);
+
+        if (shouldCheckAlerte) {
+            boolean isTauxAlerteDepasse = parametreService.isTauxAlerteDepasse(
+                    totalDepenses + lead.getAmount().doubleValue(),
+                    customer.getBudget().doubleValue()
+            );
+
+            if (isTauxAlerteDepasse) {
+                populateModelAttributes(model, authentication, manager);
+                model.addAttribute("selectedEmployeeId", employeeId);
+                model.addAttribute("selectedCustomerId", customerId);
+                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client. Cliquez à nouveau sur \"Create Lead\" pour confirmer.");
+                model.addAttribute("alertAcknowledged", true);
+                model.addAttribute("alertSignature", currentAlertSignature);
+                return "lead/create-lead";
+            }
+        }
 
         ObjectMapper objectMapper = new ObjectMapper();
         List<Attachment> allFiles = objectMapper.readValue(files, new TypeReference<List<Attachment>>() {
@@ -490,6 +522,25 @@ public class LeadController {
         response.put("folderId", folderId);
         response.put("folderName", folderName);
         return ResponseEntity.ok(response);
+    }
+
+    private String buildCreateLeadSignature(Lead lead, int employeeId, int customerId) {
+        return String.join("|",
+                normalize(lead.getName()),
+                normalize(lead.getPhone()),
+                normalize(lead.getStatus()),
+                lead.getAmount() != null ? lead.getAmount().stripTrailingZeros().toPlainString() : "",
+                String.valueOf(employeeId),
+                String.valueOf(customerId)
+        );
+    }
+
+    private boolean shouldVerifyTauxAlerte(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
+        return !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private StringBuilder getChanges(Lead prevLead, Lead lead) {

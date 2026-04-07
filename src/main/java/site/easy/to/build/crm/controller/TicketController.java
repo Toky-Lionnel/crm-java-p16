@@ -169,7 +169,7 @@ public class TicketController {
         ticket.setCreatedAt(LocalDateTime.now());
 
         double totalDepenses = customerService.calculateTotalDepenses(customerId);
-        boolean shouldCheckAlerte = !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
+        boolean shouldCheckAlerte = shouldVerifyTauxAlerte(alertAcknowledged, alertSignature, currentAlertSignature);
 
         if (shouldCheckAlerte) {
             boolean isTauxAlerteDepasse = parametreService.isTauxAlerteDepasse(
@@ -218,6 +218,10 @@ public class TicketController {
                 String.valueOf(employeeId),
                 String.valueOf(customerId)
         );
+    }
+
+    private boolean shouldVerifyTauxAlerte(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
+        return !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
     }
 
     private String normalize(String value) {

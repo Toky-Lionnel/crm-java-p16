@@ -71,8 +71,13 @@
                     <div class="card">
                         <div class="card-body">
                             <h4 class="card-title">Create New Lead</h4>
+                            <div th:if="${alertMessage != null}" class="alert alert-warning" role="alert">
+                                <span th:text="${alertMessage}"></span>
+                            </div>
                             <form th:object="${lead}" th:action="@{/employee/lead/create}" enctype="multipart/form-data" id="email-form" method="post">
                                 <input type="hidden" id="allFiles" name="allFiles">
+                                <input type="hidden" name="alertAcknowledged" th:value="${alertAcknowledged != null ? alertAcknowledged : false}">
+                                <input type="hidden" name="alertSignature" th:value="${alertSignature != null ? alertSignature : ''}">
                                 <label class="m-t-20" for="name">Name:</label>
                                 <div class="input-group">
                                     <input type="text" id="name" th:field="*{name}" class="form-control">
@@ -106,7 +111,8 @@
                                 <label class="m-t-20" for="employeeId">Assign Employee:</label>
                                 <div class="input-group">
                                     <select name="employeeId" id="employeeId" class="form-control">
-                                        <option th:each="employee : ${employees}" th:text="${employee.username}" th:value="${employee.id}"></option>
+                                        <option th:each="employee : ${employees}" th:text="${employee.username}" th:value="${employee.id}"
+                                                th:selected="${selectedEmployeeId != null and employee.id == selectedEmployeeId}"></option>
                                     </select>
                                 </div>
 
@@ -122,7 +128,8 @@
                                 <label class="m-t-20" for="customerId">Customer:</label>
                                 <div class="input-group">
                                     <select name="customerId" id="customerId" class="form-control">
-                                        <option th:each="customer : ${customers}" th:text="${customer.name}" th:value="${customer.customerId}"></option>
+                                        <option th:each="customer : ${customers}" th:text="${customer.name}" th:value="${customer.customerId}"
+                                                th:selected="${selectedCustomerId != null and customer.customerId == selectedCustomerId}"></option>
                                     </select>
                                 </div>
                                 <label class="m-t-20"><i class="ti-link"></i> Attachment</label>
@@ -204,21 +211,21 @@
 <script th:inline="javascript">
     var home = /*[[${home}]]*/ null;
 </script>
-<script th:src="@{/js/library/jquery-3.2.1.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/jquery-3.2.1.min.js}" type="text/javascript"></script>
 <!--    &lt;!&ndash; Bootstrap tether Core JavaScript &ndash;&gt;-->
-<script th:src="@{/js/library/popper.min.js}" type="text/javascript">></script>
-<script th:src="@{/js/library/bootstrap.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/popper.min.js}" type="text/javascript"></script>
+<script th:src="@{/js/library/bootstrap.min.js}" type="text/javascript"></script>
 <!--    &lt;!&ndash; slimscrollbar scrollbar JavaScript &ndash;&gt;-->
-<script th:src="@{/js/library/perfect-scrollbar.jquery.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/perfect-scrollbar.jquery.min.js}" type="text/javascript"></script>
 <!--Wave Effects -->
-<script th:src="@{/js/library/waves.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/waves.js}" type="text/javascript"></script>
 <!--Menu sidebar -->
-<script th:src="@{/js/library/sidebarmenu.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/sidebarmenu.js}" type="text/javascript"></script>
 <!--stickey kit -->
 <script th:src="@{/js/library/sticky-kit.min.js}"></script>
-<script th:src="@{/js/library/jquery.sparkline.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/jquery.sparkline.min.js}" type="text/javascript"></script>
 <!--Custom JavaScript -->
-<script th:src="@{/js/library/custom.min.js}" type="text/javascript">></script>
+<script th:src="@{/js/library/custom.min.js}" type="text/javascript"></script>
 <!-- Editable -->
 
 <script th:src="@{/js/library/wysihtml5-0.3.0.js}"></script>
