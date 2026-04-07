@@ -23,4 +23,6 @@ public interface CustomerService {
 
     long countByUserId(int userId);
 
+    double calculateTotalDepenses(int customerId);
+
 }

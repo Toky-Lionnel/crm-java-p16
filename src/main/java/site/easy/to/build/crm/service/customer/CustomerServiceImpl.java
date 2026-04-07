@@ -4,7 +4,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import site.easy.to.build.crm.repository.CustomerRepository;
+import site.easy.to.build.crm.service.lead.LeadService;
+import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.entity.Customer;
+import site.easy.to.build.crm.entity.Lead;
+import site.easy.to.build.crm.entity.Ticket;
 
 import java.util.List;
 
@@ -13,8 +17,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository) {
+    private final TicketService ticketService;
+
+    private final LeadService leadService;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, TicketService ticketService, LeadService leadService) {
         this.customerRepository = customerRepository;
+        this.ticketService = ticketService;
+        this.leadService = leadService;
     }
 
     @Override
@@ -56,5 +66,23 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public long countByUserId(int userId) {
         return customerRepository.countByUserId(userId);
+    }
+
+    @Override
+    public double calculateTotalDepenses(int customerId) {
+        List<Ticket> tickets = ticketService.findCustomerTickets(customerId);
+        List<Lead> leads = leadService.getCustomerLeads(customerId);
+
+        double totalExpenses = 0;
+
+        for (Ticket ticket : tickets) {
+            totalExpenses += ticket.getAmount().doubleValue();
+        }
+
+        for (Lead lead : leads) {
+            totalExpenses += lead.getAmount().doubleValue();
+        }
+
+        return totalExpenses;
     }
 }
