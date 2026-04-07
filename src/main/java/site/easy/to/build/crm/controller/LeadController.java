@@ -206,19 +206,31 @@ public class LeadController {
         lead.setCreatedAt(LocalDateTime.now());
 
         double totalDepenses = customerService.calculateTotalDepenses(customerId);
-        boolean shouldCheckAlerte = shouldVerifyTauxAlerte(alertAcknowledged, alertSignature, currentAlertSignature);
+        double depenseAvecNouveauLead = totalDepenses + lead.getAmount().doubleValue();
+        boolean shouldCheckAlerte = shouldVerifyBudgetDepassement(alertAcknowledged, alertSignature, currentAlertSignature);
 
         if (shouldCheckAlerte) {
+            boolean isBudgetDepasse = isBudgetDepasse(depenseAvecNouveauLead, customer.getBudget().doubleValue());
             boolean isTauxAlerteDepasse = parametreService.isTauxAlerteDepasse(
-                    totalDepenses + lead.getAmount().doubleValue(),
+                    depenseAvecNouveauLead,
                     customer.getBudget().doubleValue()
             );
+
+            if (isBudgetDepasse) {
+                populateModelAttributes(model, authentication, manager);
+                model.addAttribute("selectedEmployeeId", employeeId);
+                model.addAttribute("selectedCustomerId", customerId);
+                model.addAttribute("budgetConfirmationMessage", "Attention : Le budget du client sera dépassé. Cliquez sur \"Continuer\" pour confirmer.");
+                model.addAttribute("alertAcknowledged", true);
+                model.addAttribute("alertSignature", currentAlertSignature);
+                return "lead/create-lead";
+            }
 
             if (isTauxAlerteDepasse) {
                 populateModelAttributes(model, authentication, manager);
                 model.addAttribute("selectedEmployeeId", employeeId);
                 model.addAttribute("selectedCustomerId", customerId);
-                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client. Cliquez à nouveau sur \"Create Lead\" pour confirmer.");
+                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client.");
                 model.addAttribute("alertAcknowledged", true);
                 model.addAttribute("alertSignature", currentAlertSignature);
                 return "lead/create-lead";
@@ -535,8 +547,12 @@ public class LeadController {
         );
     }
 
-    private boolean shouldVerifyTauxAlerte(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
+    private boolean shouldVerifyBudgetDepassement(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
         return !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
+    }
+
+    private boolean isBudgetDepasse(double depense, double budget) {
+        return depense > budget;
     }
 
     private String normalize(String value) {

@@ -43,12 +43,12 @@ public class TicketController {
     private final TicketEmailSettingsService ticketEmailSettingsService;
     private final GoogleGmailApiService googleGmailApiService;
     private final EntityManager entityManager;
-
     private final ParametreService parametreService;
 
     @Autowired
     public TicketController(TicketService ticketService, AuthenticationUtils authenticationUtils, UserService userService, CustomerService customerService,
-                            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager, ParametreService parametreService) {
+                            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager,
+                            ParametreService parametreService) {
         this.ticketService = ticketService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -169,17 +169,27 @@ public class TicketController {
         ticket.setCreatedAt(LocalDateTime.now());
 
         double totalDepenses = customerService.calculateTotalDepenses(customerId);
-        boolean shouldCheckAlerte = shouldVerifyTauxAlerte(alertAcknowledged, alertSignature, currentAlertSignature);
+        double depenseAvecNouveauTicket = totalDepenses + ticket.getAmount().doubleValue();
+        boolean shouldCheckAlerte = shouldVerifyBudgetDepassement(alertAcknowledged, alertSignature, currentAlertSignature);
 
         if (shouldCheckAlerte) {
+            boolean isBudgetDepasse = isBudgetDepasse(depenseAvecNouveauTicket, customer.getBudget().doubleValue());
             boolean isTauxAlerteDepasse = parametreService.isTauxAlerteDepasse(
-                    totalDepenses + ticket.getAmount().doubleValue(),
+                    depenseAvecNouveauTicket,
                     customer.getBudget().doubleValue()
             );
 
+            if (isBudgetDepasse) {
+                prepareCreateTicketFormModel(model, authentication, manager, employeeId, customerId);
+                model.addAttribute("budgetConfirmationMessage", "Attention : Le budget du client sera dépassé. Cliquez sur \"Continuer\" pour confirmer.");
+                model.addAttribute("alertAcknowledged", true);
+                model.addAttribute("alertSignature", currentAlertSignature);
+                return "ticket/create-ticket";
+            }
+
             if (isTauxAlerteDepasse) {
                 prepareCreateTicketFormModel(model, authentication, manager, employeeId, customerId);
-                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client. Cliquez à nouveau sur \"Create ticket\" pour confirmer.");
+                model.addAttribute("alertMessage", "Attention : Le taux d'alerte de dépense a été dépassé pour ce client.");
                 model.addAttribute("alertAcknowledged", true);
                 model.addAttribute("alertSignature", currentAlertSignature);
                 return "ticket/create-ticket";
@@ -220,8 +230,12 @@ public class TicketController {
         );
     }
 
-    private boolean shouldVerifyTauxAlerte(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
+    private boolean shouldVerifyBudgetDepassement(boolean alertAcknowledged, String alertSignature, String currentAlertSignature) {
         return !alertAcknowledged || !Objects.equals(alertSignature, currentAlertSignature);
+    }
+
+    private boolean isBudgetDepasse(double depense, double budget) {
+        return depense > budget;
     }
 
     private String normalize(String value) {

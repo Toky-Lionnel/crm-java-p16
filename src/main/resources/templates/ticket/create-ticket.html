@@ -73,7 +73,7 @@
                             <div th:if="${alertMessage != null}" class="alert alert-warning" role="alert">
                                 <span th:text="${alertMessage}"></span>
                             </div>
-                            <form th:object="${ticket}" th:action="@{/employee/ticket/create-ticket}" method="post">
+                            <form id="ticket-create-form" th:object="${ticket}" th:action="@{/employee/ticket/create-ticket}" method="post">
                                 <input type="hidden" name="alertAcknowledged" th:value="${alertAcknowledged != null ? alertAcknowledged : false}">
                                 <input type="hidden" name="alertSignature" th:value="${alertSignature != null ? alertSignature : ''}">
 
@@ -155,6 +155,26 @@
 
                                 <button type="submit" class="btn btn-primary m-t-20">Create ticket</button>
                             </form>
+
+                            <div th:if="${budgetConfirmationMessage != null}" class="modal fade" id="budgetAlertModal" tabindex="-1" role="dialog" aria-labelledby="budgetAlertModalTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="budgetAlertModalTitle">Confirmation requise</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <span th:text="${budgetConfirmationMessage}"></span>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Modifier</button>
+                                            <button type="button" class="btn btn-primary" id="confirm-budget-alert-ticket">Continuer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -214,9 +234,17 @@
 
 <script th:src="@{/js/library/wysihtml5-0.3.0.js}"></script>
 <script th:src="@{/js/library/bootstrap-wysihtml5.js}"></script>
-<script>
+<script th:inline="javascript">
     $(document).ready(function() {
         $('.textarea_editor').wysihtml5();
+
+        if ($('#budgetAlertModal').length) {
+            $('#budgetAlertModal').modal('show');
+        }
+
+        $('#confirm-budget-alert-ticket').on('click', function() {
+            $('#ticket-create-form').submit();
+        });
     });
 </script>
 
