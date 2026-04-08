@@ -1,0 +1,25 @@
+on va travailler sur une fonctionnalité un peu difficile , je vais te guider pas à pas 
+
+Donc notre backend (Spring-boot) va recevoir un JSON venant du front 
+format de ce JSON : un tableau contenant (table_name, data) , exemple : 
+
+[ 
+    { table_name : "CUSTOMER",  data : { customer_email : "test" } } ,
+    { table_name : "BUDGET",  data : [ { amount : 15000 , customer_email : "test" } , 
+    { amount : 15000 , customer_email : "test" , numLigne : 1 } ] } ,
+    { table_name : "EXPENSE",  data : { amount : 1500.5, customer_email : "test", type : "" , numLigne : 1 } }
+]
+
+le front-end va envoyer ces 03 objets , le backend va alors le recevoir sous forme de String 
+
+1ere etape : transformer ce JSON en tableau d'objets JAVA avec String table_name et String data
+resultat : on a un tableau d'objtet (3 éléments pour être exact)
+
+2eme etape : transformer String Data en DTO 
+resultat : on a des List<CustomerImportDTO> , List <BudgetImportDTO> , List <ExpenseImportDTO> avec 
+attributs les clés JSON de data (on ne va pas utiliser reflect , on va construire cela à la main)
+
+clés JSON pour chaque DTO : 
+Customer : customer_email,customer_name,numLigne
+Expenses : customer_email,subject_or_name,type,status,expense,numLigne
+Budget : customer_email,Budget, numLigne

@@ -25,3 +25,5 @@ public ResponseEntity<List<Budget>> getAllContractsJson() {
 6. Mandalo SecurityConfig aloha ny requete vao mandalo Controller , raha ohatra ka bloqué any am SecurityConfig dia misy problème ana CORS foana 
 
 7. Données de test mila atao mifanaraka @ le enum sns ao 
+
+8. Rehefa mi implementé service dia mila annoté @Service

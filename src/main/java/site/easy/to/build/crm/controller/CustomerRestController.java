@@ -20,6 +20,7 @@ import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.contract.ContractService;
 import site.easy.to.build.crm.service.customer.CustomerLoginInfoService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.imports.ImportService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
@@ -44,6 +45,7 @@ public class CustomerRestController {
     private final ContractService contractService;
     private final LeadService leadService;
     private final BudgetService budgetService;
+    private final ImportService importService;
 
     public CustomerRestController(CustomerService customerService, UserService userService,
                                   CustomerLoginInfoService customerLoginInfoService,
@@ -51,7 +53,8 @@ public class CustomerRestController {
                                   TicketService ticketService,
                                   ContractService contractService,
                                   LeadService leadService,
-                                  BudgetService budgetService) {
+                                  BudgetService budgetService,
+                                  ImportService importService) {
         this.customerService = customerService;
         this.userService = userService;
         this.customerLoginInfoService = customerLoginInfoService;
@@ -60,6 +63,7 @@ public class CustomerRestController {
         this.contractService = contractService;
         this.leadService = leadService;
         this.budgetService = budgetService;
+        this.importService = importService;
     }
 
     @GetMapping
@@ -75,6 +79,13 @@ public class CustomerRestController {
 
         return ResponseEntity.ok(customers.stream().map(this::toDto).toList());
     }
+
+    @PostMapping ("/import")
+    public ResponseEntity<String> importData(@RequestBody String json) throws Exception {
+        return ResponseEntity.ok(this.importService.processImport(this.importService.parseJson(json)).toString());
+    }
+
+
 
     @GetMapping("/budgets")
     public ResponseEntity<List<BudgetResponseDto>> getCustomersBudgets(Authentication authentication) {
