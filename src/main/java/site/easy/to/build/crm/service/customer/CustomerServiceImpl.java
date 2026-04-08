@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
+import site.easy.to.build.crm.dto.CustomerImportDTO;
+import site.easy.to.build.crm.dto.ImportError;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -85,4 +88,23 @@ public class CustomerServiceImpl implements CustomerService {
 
         return totalExpenses;
     }
+
+    @Override
+    public List<ImportError> isDataValid(CustomerImportDTO customerImportDTO){
+        List<ImportError> errors = new ArrayList<>();
+
+        Customer existingCustomer = customerRepository.findByEmail(customerImportDTO.getCustomer_email());
+        if (existingCustomer != null) {
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists for customer"));
+        }
+
+        if (customerImportDTO.getCustomer_email() == null || customerImportDTO.getCustomer_email().isEmpty()) {
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email is required for customer"));
+        }
+        if (customerImportDTO.getCustomer_name() == null || customerImportDTO.getCustomer_name().isEmpty()) {
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Name is required for customer"));
+        }
+        return errors;
+    }
+
 }
