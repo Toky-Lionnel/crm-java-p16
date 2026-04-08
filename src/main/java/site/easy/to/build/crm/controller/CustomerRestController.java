@@ -346,9 +346,9 @@ public class CustomerRestController {
         dto.setId(budget.getId());
         dto.setAmount(budget.getAmount());
         dto.setCreatedAt(budget.getCreatedAt());
-        dto.setFormattedCreatedAt(budget.getFormattedCreatedAt());
 
         if (budget.getCustomer() != null) {
+            dto.setCustomerName(budget.getCustomer().getName());
             dto.setCustomerId(budget.getCustomer().getCustomerId());
         }
 

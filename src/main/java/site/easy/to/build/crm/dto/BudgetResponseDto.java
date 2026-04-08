@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 public class BudgetResponseDto {
     private Integer id;
     private BigDecimal amount;
+    private String customerName;
     private Integer customerId;
     private LocalDateTime createdAt;
-    private String formattedCreatedAt;
 
     public Integer getId() {
         return id;
@@ -42,11 +42,12 @@ public class BudgetResponseDto {
         this.createdAt = createdAt;
     }
 
-    public String getFormattedCreatedAt() {
-        return formattedCreatedAt;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setFormattedCreatedAt(String formattedCreatedAt) {
-        this.formattedCreatedAt = formattedCreatedAt;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
+
 }
