@@ -1,17 +1,22 @@
 package site.easy.to.build.crm.controller;
 
 import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import site.easy.to.build.crm.dto.BudgetCreateRequestDto;
+import site.easy.to.build.crm.dto.BudgetResponseDto;
 import site.easy.to.build.crm.dto.CustomerDto;
 import site.easy.to.build.crm.dto.CustomerRequestDto;
+import site.easy.to.build.crm.entity.Budget;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.CustomerLoginInfo;
 import site.easy.to.build.crm.entity.User;
+import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.contract.ContractService;
 import site.easy.to.build.crm.service.customer.CustomerLoginInfoService;
 import site.easy.to.build.crm.service.customer.CustomerService;
@@ -38,13 +43,15 @@ public class CustomerRestController {
     private final TicketService ticketService;
     private final ContractService contractService;
     private final LeadService leadService;
+    private final BudgetService budgetService;
 
     public CustomerRestController(CustomerService customerService, UserService userService,
                                   CustomerLoginInfoService customerLoginInfoService,
                                   AuthenticationUtils authenticationUtils,
                                   TicketService ticketService,
                                   ContractService contractService,
-                                  LeadService leadService) {
+                                  LeadService leadService,
+                                  BudgetService budgetService) {
         this.customerService = customerService;
         this.userService = userService;
         this.customerLoginInfoService = customerLoginInfoService;
@@ -52,6 +59,7 @@ public class CustomerRestController {
         this.ticketService = ticketService;
         this.contractService = contractService;
         this.leadService = leadService;
+        this.budgetService = budgetService;
     }
 
     @GetMapping
@@ -67,6 +75,76 @@ public class CustomerRestController {
 
         return ResponseEntity.ok(customers.stream().map(this::toDto).toList());
     }
+
+    @GetMapping("/budgets")
+    public ResponseEntity<List<BudgetResponseDto>> getCustomersBudgets(Authentication authentication) {
+        User loggedInUser = getActiveLoggedInUser(authentication);
+
+        List<Budget> budgets;
+        if (AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
+            budgets = budgetService.findAll();
+        } else {
+            budgets = budgetService.findAll()
+                    .stream()
+                    .filter(budget -> budget.getCustomer() != null
+                            && budget.getCustomer().getUser() != null
+                            && Objects.equals(budget.getCustomer().getUser().getId(), loggedInUser.getId()))
+                    .toList();
+        }
+
+        List<BudgetResponseDto> response = budgets.stream().map(this::toBudgetDto).toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/budgets")
+    public ResponseEntity<BudgetResponseDto> createBudget(@Valid @RequestBody BudgetCreateRequestDto request,
+                                                          Authentication authentication) {
+        User loggedInUser = getActiveLoggedInUser(authentication);
+
+        Customer customer = customerService.findByCustomerId(request.getCustomerId());
+        if (customer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+        }
+
+        boolean isManager = AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER");
+        boolean isOwner = customer.getUser() != null && Objects.equals(customer.getUser().getId(), loggedInUser.getId());
+
+        if (!isManager && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        Budget budget = new Budget();
+        budget.setAmount(request.getAmount());
+        budget.setCustomer(customer);
+        budget.setCreatedAt(LocalDateTime.now());
+
+        Budget createdBudget = budgetService.save(budget);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toBudgetDto(createdBudget));
+    }
+
+    @GetMapping("/{id}/budgets")
+    public ResponseEntity<List<BudgetResponseDto>> getCustomerBudgetsByCustomerId(@PathVariable("id") int id,
+                                                                                  Authentication authentication) {
+        User loggedInUser = getActiveLoggedInUser(authentication);
+
+        Customer customer = customerService.findByCustomerId(id);
+        if (customer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found");
+        }
+
+        boolean isManager = AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER");
+        boolean isOwner = customer.getUser() != null && Objects.equals(customer.getUser().getId(), loggedInUser.getId());
+        if (!isManager && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+
+        List<BudgetResponseDto> response = budgetService.getCustomerBudgets(id)
+                .stream()
+                .map(this::toBudgetDto)
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<CustomerDto> getCustomerById(@PathVariable("id") int id, Authentication authentication) {
@@ -258,6 +336,20 @@ public class CustomerRestController {
 
         if (customer.getUser() != null) {
             dto.setUserId(customer.getUser().getId());
+        }
+
+        return dto;
+    }
+
+    private BudgetResponseDto toBudgetDto(Budget budget) {
+        BudgetResponseDto dto = new BudgetResponseDto();
+        dto.setId(budget.getId());
+        dto.setAmount(budget.getAmount());
+        dto.setCreatedAt(budget.getCreatedAt());
+        dto.setFormattedCreatedAt(budget.getFormattedCreatedAt());
+
+        if (budget.getCustomer() != null) {
+            dto.setCustomerId(budget.getCustomer().getCustomerId());
         }
 
         return dto;
