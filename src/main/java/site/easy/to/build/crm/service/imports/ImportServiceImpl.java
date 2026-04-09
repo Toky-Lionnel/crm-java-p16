@@ -3,7 +3,6 @@ package site.easy.to.build.crm.service.imports;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
 import site.easy.to.build.crm.dto.BudgetImportDTO;
 import site.easy.to.build.crm.dto.CustomerImportDTO;
 import site.easy.to.build.crm.dto.ExpenseImportDTO;
@@ -13,6 +12,9 @@ import site.easy.to.build.crm.dto.ImportResult;
 import site.easy.to.build.crm.dto.ValidationResult;
 import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.expense.ExpenseService;
+import site.easy.to.build.crm.service.lead.LeadService;
+import site.easy.to.build.crm.service.ticket.TicketService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +24,16 @@ public class ImportServiceImpl implements ImportService {
 
     private final CustomerService customerService;
     private final BudgetService budgetService;
+    private final ExpenseService expenseService;
+    private final TicketService ticketService;
+    private final LeadService leadService;
 
-    public ImportServiceImpl(CustomerService customerService, BudgetService budgetService) {
+    public ImportServiceImpl(CustomerService customerService, BudgetService budgetService, ExpenseService expenseService, TicketService ticketService, LeadService leadService) {
         this.customerService = customerService;
         this.budgetService = budgetService;
+        this.expenseService = expenseService;
+        this.ticketService = ticketService;
+        this.leadService = leadService;
     }
 
     @Override
@@ -83,12 +91,15 @@ public class ImportServiceImpl implements ImportService {
         return new ImportResult(customers, budgets, expenses);
     }
 
+
     private List<ValidationResult> validateData(ImportResult importResult) {
         List <ValidationResult> result = new ArrayList<>();
         ValidationResult<CustomerImportDTO> customerValidationResult = customerService.validateCustomerImportData(importResult.getCustomers());
         ValidationResult<BudgetImportDTO> budgetValidationResult = budgetService.validateBudgetImportData(importResult.getBudgets(), customerValidationResult);
+        ValidationResult<ExpenseImportDTO> expenseValidationResult = expenseService.validateExpenseImportData(importResult.getExpenses(), customerValidationResult);
         result.add(customerValidationResult);
         result.add(budgetValidationResult);
+        result.add(expenseValidationResult);
         return result;
     }
 
@@ -109,6 +120,7 @@ public class ImportServiceImpl implements ImportService {
         return sb.toString();
     }
 
+    
     private void saveValidData(List<ValidationResult> validationResults) {
         for (ValidationResult vr : validationResults) {
             switch (vr.getNomTable()) {
@@ -122,6 +134,14 @@ public class ImportServiceImpl implements ImportService {
                         budgetService.save(budgetService.transformDTOtoEntity(budgetDTO));
                     }
                     break;
+                case "EXPENSE":
+                    for (ExpenseImportDTO expenseDTO : ((ValidationResult<ExpenseImportDTO>) vr).getValidItems()) {
+                        if (expenseDTO.getType().equalsIgnoreCase("Ticket")) {
+                            ticketService.save(expenseService.transformExpenseDTOToTicket(expenseDTO));
+                        } else if (expenseDTO.getType().equalsIgnoreCase("Lead")) {
+                            leadService.save(expenseService.transformExpenseDTOToLead(expenseDTO));
+                        }
+                    }
             }
         }
     }
@@ -132,7 +152,20 @@ public class ImportServiceImpl implements ImportService {
             List<ImportRequest> requests = parseJson(json);
             ImportResult importResult = transformData(requests);
             List<ValidationResult> validationResults = validateData(importResult);
-            saveValidData(validationResults);
+            
+            boolean hasErrors = false;
+            for (ValidationResult vr : validationResults) {
+                if (!vr.getErrors().isEmpty()) {
+                    hasErrors = true;
+                    break;
+                }
+            }
+
+            if (!hasErrors) {
+                saveValidData(validationResults);
+                return "Import successful! All data has been validated and saved.";
+            } 
+
             return afficherResultat(validationResults);
         } catch (Exception e) {
             e.printStackTrace();
