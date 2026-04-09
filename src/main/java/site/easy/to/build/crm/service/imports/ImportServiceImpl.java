@@ -109,12 +109,30 @@ public class ImportServiceImpl implements ImportService {
         return sb.toString();
     }
 
+    private void saveValidData(List<ValidationResult> validationResults) {
+        for (ValidationResult vr : validationResults) {
+            switch (vr.getNomTable()) {
+                case "CUSTOMER":
+                    for (CustomerImportDTO customerDTO : ((ValidationResult<CustomerImportDTO>) vr).getValidItems()) {
+                        customerService.save(customerService.transformDTOtoEntity(customerDTO));
+                    }
+                    break;
+                case "BUDGET":
+                    for (BudgetImportDTO budgetDTO : ((ValidationResult<BudgetImportDTO>) vr).getValidItems()) {
+                        budgetService.save(budgetService.transformDTOtoEntity(budgetDTO));
+                    }
+                    break;
+            }
+        }
+    }
+
     @Override
     public String processImport(String json) throws Exception {
         try {
             List<ImportRequest> requests = parseJson(json);
             ImportResult importResult = transformData(requests);
             List<ValidationResult> validationResults = validateData(importResult);
+            saveValidData(validationResults);
             return afficherResultat(validationResults);
         } catch (Exception e) {
             e.printStackTrace();

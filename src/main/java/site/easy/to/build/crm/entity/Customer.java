@@ -76,9 +76,7 @@ public class Customer {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "budget", nullable = false, precision = 10, scale = 2)
-    @DecimalMin(value = "0.00", inclusive = true, message = "Budget must be greater than or equal to 0.00")
-    @DecimalMax(value = "9999999.99", inclusive = true, message = "Budget must be less than or equal to 9999999.99")
+    @Column(name = "budget", nullable = true, precision = 10, scale = 2)
     private BigDecimal budget;
 
     public BigDecimal getBudget() {

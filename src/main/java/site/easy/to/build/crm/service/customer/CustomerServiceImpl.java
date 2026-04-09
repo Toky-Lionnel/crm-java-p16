@@ -1,10 +1,11 @@
 package site.easy.to.build.crm.service.customer;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import lombok.val;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
@@ -15,9 +16,11 @@ import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -28,10 +31,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final LeadService leadService;
 
-    public CustomerServiceImpl(CustomerRepository customerRepository, TicketService ticketService, LeadService leadService) {
+    private final Validator validator;
+
+    public CustomerServiceImpl(CustomerRepository customerRepository, TicketService ticketService, LeadService leadService,
+                               Validator validator) {
         this.customerRepository = customerRepository;
         this.ticketService = ticketService;
         this.leadService = leadService;
+        this.validator = validator;
     }
 
     @Override
@@ -97,17 +104,17 @@ public class CustomerServiceImpl implements CustomerService {
     public List<ImportError> isDataValid(CustomerImportDTO customerImportDTO){
         List<ImportError> errors = new ArrayList<>();
 
-        Customer existingCustomer = customerRepository.findByEmail(customerImportDTO.getCustomer_email());
-        if (existingCustomer != null) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists for customer : " + customerImportDTO.getCustomer_email()));
+        Customer customerToValidate = new Customer();
+        customerToValidate.setEmail(customerImportDTO.getCustomer_email());
+        customerToValidate.setName(customerImportDTO.getCustomer_name());
+        customerToValidate.setCountry("Madagascar");
+
+        Set<ConstraintViolation<Customer>> violations = validator.validate(customerToValidate);
+        for (ConstraintViolation<Customer> violation : violations) {
+            String field = violation.getPropertyPath().toString();
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), field + " : " + violation.getMessage()));
         }
 
-        if (customerImportDTO.getCustomer_email() == null || customerImportDTO.getCustomer_email().isEmpty()) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email is required for customer : " + customerImportDTO.getCustomer_email()));
-        }
-        if (customerImportDTO.getCustomer_name() == null || customerImportDTO.getCustomer_name().isEmpty()) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Name is required for customer : " + customerImportDTO.getCustomer_name()));
-        }
         return errors;
     }
 
@@ -150,6 +157,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setEmail(customerImportDTO.getCustomer_email());
         customer.setCountry("Madagascar");
         customer.setCreatedAt(LocalDateTime.now());
+        customer.setBudget(BigDecimal.ZERO);
         return customer;
     }
 
