@@ -10,8 +10,17 @@ public class ValidationResult<T> {
     private int validItemCount;
     private int invalidItemCount;
     private String nomTable;
+    private String fileName;
 
     
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     public int getTotalItems() {
         return totalItems;
     }
