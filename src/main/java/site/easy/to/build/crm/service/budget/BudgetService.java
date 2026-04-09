@@ -19,4 +19,6 @@ public interface BudgetService {
     public List <ImportError> isDataValid (BudgetImportDTO budget, ValidationResult<CustomerImportDTO> customerValidationResult);
     public ValidationResult<BudgetImportDTO> validateBudgetImportData(List<BudgetImportDTO> budgetImportDTOList, ValidationResult<CustomerImportDTO> customerValidationResult);
 
+    public Budget transformDTOtoEntity(BudgetImportDTO budgetImportDTO);
+
 }

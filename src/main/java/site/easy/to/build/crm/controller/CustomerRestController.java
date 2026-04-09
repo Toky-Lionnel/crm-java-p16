@@ -80,11 +80,7 @@ public class CustomerRestController {
         return ResponseEntity.ok(customers.stream().map(this::toDto).toList());
     }
 
-    @PostMapping ("/import")
-    public ResponseEntity<String> importData(@RequestBody String json) throws Exception {
-        return ResponseEntity.ok(this.importService.processImport(this.importService.parseJson(json)).toString());
-    }
-
+    
     @GetMapping("/budgets")
     public ResponseEntity<List<BudgetResponseDto>> getCustomersBudgets(Authentication authentication) {
         User loggedInUser = getActiveLoggedInUser(authentication);

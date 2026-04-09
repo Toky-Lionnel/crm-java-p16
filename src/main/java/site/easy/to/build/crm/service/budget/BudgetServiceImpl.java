@@ -11,6 +11,9 @@ import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.repository.BudgetRepository;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.service.customer.CustomerService;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -63,7 +66,7 @@ public class BudgetServiceImpl implements BudgetService {
 
 
         if (budget.getBudget() == null || budget.getBudget() <= 0) {
-            errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Amount must be a positive number"));
+            errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Amount must be a positive number : " + budget.getBudget()));
         }
 
         List<CustomerImportDTO> validCustomers = customerValidationResult.getValidItems();
@@ -103,7 +106,23 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
+        validationResult.setTotalItems(budgetImportDTOList.size());
+        validationResult.setValidItemCount(validationResult.getValidItems().size());
+        validationResult.setInvalidItemCount(validationResult.getInvalidItems().size());
+        validationResult.setNomTable("BUDGET");
         return validationResult;
+    }
+
+
+    @Override
+    public Budget transformDTOtoEntity(BudgetImportDTO budgetImportDTO) {
+        Customer customer = customerService.findByEmail(budgetImportDTO.getCustomer_email());
+        
+        Budget budget = new Budget();
+        budget.setAmount(BigDecimal.valueOf(budgetImportDTO.getBudget()));
+        budget.setCustomer(customer);
+        budget.setCreatedAt(LocalDateTime.now());
+        return budget;
     }
 
 

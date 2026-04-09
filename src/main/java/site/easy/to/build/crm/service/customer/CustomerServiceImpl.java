@@ -3,6 +3,8 @@ package site.easy.to.build.crm.service.customer;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import lombok.val;
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
@@ -13,6 +15,7 @@ import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,14 +99,14 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer existingCustomer = customerRepository.findByEmail(customerImportDTO.getCustomer_email());
         if (existingCustomer != null) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists for customer"));
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists for customer : " + customerImportDTO.getCustomer_email()));
         }
 
         if (customerImportDTO.getCustomer_email() == null || customerImportDTO.getCustomer_email().isEmpty()) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email is required for customer"));
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email is required for customer : " + customerImportDTO.getCustomer_email()));
         }
         if (customerImportDTO.getCustomer_name() == null || customerImportDTO.getCustomer_name().isEmpty()) {
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Name is required for customer"));
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Name is required for customer : " + customerImportDTO.getCustomer_name()));
         }
         return errors;
     }
@@ -119,7 +122,7 @@ public class CustomerServiceImpl implements CustomerService {
             
             if (customerImportDTO.getCustomer_email() != null && !customerImportDTO.getCustomer_email().isEmpty()) {
                 if (seenEmails.contains(customerImportDTO.getCustomer_email())) {
-                    errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists in the import list"));
+                    errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists in the import list : " + customerImportDTO.getCustomer_email()));
                 } else {
                     seenEmails.add(customerImportDTO.getCustomer_email());
                 }
@@ -132,7 +135,22 @@ public class CustomerServiceImpl implements CustomerService {
                 validationResult.getErrors().addAll(errors);
             }
         }
+
+        validationResult.setTotalItems(customerImportDTOList.size());
+        validationResult.setValidItemCount(validationResult.getValidItems().size());
+        validationResult.setInvalidItemCount(validationResult.getInvalidItems().size());
+        validationResult.setNomTable("CUSTOMER");
         return validationResult;
+    }
+
+    @Override
+    public Customer transformDTOtoEntity(CustomerImportDTO customerImportDTO) {
+        Customer customer = new Customer();
+        customer.setName(customerImportDTO.getCustomer_name());
+        customer.setEmail(customerImportDTO.getCustomer_email());
+        customer.setCountry("Madagascar");
+        customer.setCreatedAt(LocalDateTime.now());
+        return customer;
     }
 
 }

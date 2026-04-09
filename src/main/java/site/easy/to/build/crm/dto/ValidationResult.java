@@ -6,15 +6,55 @@ public class ValidationResult<T> {
     private List<T> validItems = new ArrayList<>();
     private List<T> invalidItems = new ArrayList<>();
     private List<ImportError> errors = new ArrayList<>();
+    private int totalItems;
+    private int validItemCount;
+    private int invalidItemCount;
+    private String nomTable;
 
     
+    public int getTotalItems() {
+        return totalItems;
+    }
+
+    public void setTotalItems(int totalItems) {
+        this.totalItems = totalItems;
+    }
+
+    public int getValidItemCount() {
+        return validItemCount;
+    }
+
+    public void setValidItemCount(int validItemCount) {
+        this.validItemCount = validItemCount;
+    }
+
+    public int getInvalidItemCount() {
+        return invalidItemCount;
+    }
+
+    public void setInvalidItemCount(int invalidItemCount) {
+        this.invalidItemCount = invalidItemCount;
+    }
+
+    public String getNomTable() {
+        return nomTable;
+    }
+
+    public void setNomTable(String nomTable) {
+        this.nomTable = nomTable;
+    }
+
     public ValidationResult() {
     }
 
-    public ValidationResult(List<T> validItems, List<T> invalidItems, List<ImportError> errors) {
+    public ValidationResult(List<T> validItems, List<T> invalidItems, List<ImportError> errors, int totalItems, int validItemCount, int invalidItemCount, String nomTable) {
         this.validItems = validItems;
         this.invalidItems = invalidItems;
         this.errors = errors;
+        this.totalItems = totalItems;
+        this.validItemCount = validItemCount;
+        this.invalidItemCount = invalidItemCount;
+        this.nomTable = nomTable;
     }
 
 

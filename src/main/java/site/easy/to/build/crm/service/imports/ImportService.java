@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface ImportService {
 
+    public String processImport (String json) throws Exception;
     public List<ImportRequest> parseJson(String json) throws Exception;
 
-    public ImportResult processImport(List<ImportRequest> requests);
     
 } 
