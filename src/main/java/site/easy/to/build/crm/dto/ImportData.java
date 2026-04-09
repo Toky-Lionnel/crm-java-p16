@@ -1,7 +1,7 @@
 package site.easy.to.build.crm.dto;
 import java.util.List;
 
-public class ImportFileName<T> {
+public class ImportData<T> {
     
     private String file_name;
     private String table_name;
@@ -24,10 +24,10 @@ public class ImportFileName<T> {
         this.data = data;
     }
 
-    public ImportFileName() {
+    public ImportData() {
     }
 
-    public ImportFileName(String file_name) {
+    public ImportData(String file_name) {
         this.file_name = file_name;
     }
 
@@ -39,7 +39,7 @@ public class ImportFileName<T> {
         this.file_name = file_name;
     }
 
-    public ImportFileName(String file_name, List<T> data, String table_name) {
+    public ImportData(String file_name, List<T> data, String table_name) {
         this.file_name = file_name;
         this.data = data;
         this.table_name = table_name;

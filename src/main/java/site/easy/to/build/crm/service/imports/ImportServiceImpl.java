@@ -7,9 +7,8 @@ import site.easy.to.build.crm.dto.BudgetImportDTO;
 import site.easy.to.build.crm.dto.CustomerImportDTO;
 import site.easy.to.build.crm.dto.ExpenseImportDTO;
 import site.easy.to.build.crm.dto.ImportError;
-import site.easy.to.build.crm.dto.ImportFileName;
+import site.easy.to.build.crm.dto.ImportData;
 import site.easy.to.build.crm.dto.ImportRequest;
-import site.easy.to.build.crm.dto.ImportResult;
 import site.easy.to.build.crm.dto.ValidationResult;
 import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.customer.CustomerService;
@@ -62,12 +61,14 @@ public class ImportServiceImpl implements ImportService {
     }
 
 
-    public ImportResult transformData(List<ImportRequest> requests) {
+    public List<ImportData> transformData(List<ImportRequest> requests) {
         ObjectMapper mapper = new ObjectMapper();
 
         List<CustomerImportDTO> customers = new ArrayList<>();
         List<BudgetImportDTO> budgets = new ArrayList<>();
         List<ExpenseImportDTO> expenses = new ArrayList<>();
+
+        List<ImportData> result = new ArrayList<>();
 
         for (ImportRequest req : requests) {
 
@@ -76,52 +77,19 @@ public class ImportServiceImpl implements ImportService {
                 case "CUSTOMER":
                     customers.addAll(
                             convertData(req.getData(), CustomerImportDTO.class, mapper));
+                    result.add(new ImportData<CustomerImportDTO>(req.getFile_name(), customers, req.getTable_name()));
                     break;
 
                 case "BUDGET":
                     budgets.addAll(
                             convertData(req.getData(), BudgetImportDTO.class, mapper));
+                    result.add(new ImportData<BudgetImportDTO>(req.getFile_name(), budgets, req.getTable_name()));
                     break;
 
                 case "EXPENSE":
                     expenses.addAll(
                             convertData(req.getData(), ExpenseImportDTO.class, mapper));
-                    break;
-            }
-        }
-        return new ImportResult(customers, budgets, expenses);
-    }
-
-
-    public List<ImportFileName> transformDataWithFileName(List<ImportRequest> requests) {
-        ObjectMapper mapper = new ObjectMapper();
-
-        List<CustomerImportDTO> customers = new ArrayList<>();
-        List<BudgetImportDTO> budgets = new ArrayList<>();
-        List<ExpenseImportDTO> expenses = new ArrayList<>();
-
-        List<ImportFileName> result = new ArrayList<>();
-
-        for (ImportRequest req : requests) {
-
-            switch (req.getTable_name()) {
-
-                case "CUSTOMER":
-                    customers.addAll(
-                            convertData(req.getData(), CustomerImportDTO.class, mapper));
-                    result.add(new ImportFileName<CustomerImportDTO>(req.getFile_name(), customers, req.getTable_name()));
-                    break;
-
-                case "BUDGET":
-                    budgets.addAll(
-                            convertData(req.getData(), BudgetImportDTO.class, mapper));
-                    result.add(new ImportFileName<BudgetImportDTO>(req.getFile_name(), budgets, req.getTable_name()));
-                    break;
-
-                case "EXPENSE":
-                    expenses.addAll(
-                            convertData(req.getData(), ExpenseImportDTO.class, mapper));
-                    result.add(new ImportFileName<ExpenseImportDTO>(req.getFile_name(), expenses, req.getTable_name()));
+                    result.add(new ImportData<ExpenseImportDTO>(req.getFile_name(), expenses, req.getTable_name()));
                     break;
             }
         }
@@ -129,34 +97,29 @@ public class ImportServiceImpl implements ImportService {
     }
 
 
-    private List<ValidationResult> validateData(ImportResult importResult) {
-        List <ValidationResult> result = new ArrayList<>();
-        ValidationResult<CustomerImportDTO> customerValidationResult = customerService.validateCustomerImportData(importResult.getCustomers());
-        ValidationResult<BudgetImportDTO> budgetValidationResult = budgetService.validateBudgetImportData(importResult.getBudgets(), customerValidationResult);
-        ValidationResult<ExpenseImportDTO> expenseValidationResult = expenseService.validateExpenseImportData(importResult.getExpenses(), customerValidationResult);
-        result.add(customerValidationResult);
-        result.add(budgetValidationResult);
-        result.add(expenseValidationResult);
-        return result;
-    }
-
-
-    private List<ValidationResult> validateDataFileName(List<ImportFileName> importFileNames) {
-        List <ValidationResult> result = new ArrayList<>();
-
-
-        ValidationResult<CustomerImportDTO> customerValidationResult = null;
-
-        for (ImportFileName t : importFileNames) {
+    @SuppressWarnings("unchecked")
+    private ValidationResult <CustomerImportDTO> generateCustomerReference (List <ImportData> importDatas) {
+        ValidationResult<CustomerImportDTO> result = new ValidationResult<>();
+        for (ImportData t : importDatas) {
             if (t.getTable_name().equalsIgnoreCase("customer")) {
-                customerValidationResult = customerService.validateCustomerImportData((List <CustomerImportDTO>)t.getData());
-                customerValidationResult.setFileName(t.getFile_name());
-                result.add(customerValidationResult);
+                result = customerService.validateCustomerImportData((List <CustomerImportDTO>)t.getData());
+                break;
             }
         }
+        return result;
+    }
 
-        for (ImportFileName t : importFileNames) {
+
+    @SuppressWarnings("unchecked")
+    private List<ValidationResult> validateDataFileName(List<ImportData> importDatas) {
+
+        List <ValidationResult> result = new ArrayList();
+        ValidationResult<CustomerImportDTO> customerValidationResult = generateCustomerReference(importDatas);
+        result.add(customerValidationResult);
+
+        for (ImportData t : importDatas) {
             if (t.getTable_name().equalsIgnoreCase("budget")) {
+                
                 ValidationResult budget = budgetService.validateBudgetImportData((List <BudgetImportDTO>)t.getData(),customerValidationResult);
                 budget.setFileName(t.getFile_name());
                 result.add(budget);
@@ -221,12 +184,11 @@ public class ImportServiceImpl implements ImportService {
     @Override
     public String processImport(String json) throws Exception {
         try {
+
             List<ImportRequest> requests = parseJson(json);
-            // ImportResult importResult = transformData(requests);
+            List <ImportData> data = transformData(requests);
 
-            List <ImportFileName> fileNames = transformDataWithFileName(requests);
-
-            List<ValidationResult> validationResults = validateDataFileName(fileNames);
+            List<ValidationResult> validationResults = validateDataFileName(data);
             
             boolean hasErrors = false;
             for (ValidationResult vr : validationResults) {
