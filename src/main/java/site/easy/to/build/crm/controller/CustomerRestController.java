@@ -85,8 +85,6 @@ public class CustomerRestController {
         return ResponseEntity.ok(this.importService.processImport(this.importService.parseJson(json)).toString());
     }
 
-
-
     @GetMapping("/budgets")
     public ResponseEntity<List<BudgetResponseDto>> getCustomersBudgets(Authentication authentication) {
         User loggedInUser = getActiveLoggedInUser(authentication);

@@ -2,6 +2,7 @@ package site.easy.to.build.crm.service.customer;
 
 import site.easy.to.build.crm.dto.CustomerImportDTO;
 import site.easy.to.build.crm.dto.ImportError;
+import site.easy.to.build.crm.dto.ValidationResult;
 import site.easy.to.build.crm.entity.Customer;
 
 import java.util.List;
@@ -27,5 +28,7 @@ public interface CustomerService {
     double calculateTotalDepenses(int customerId);
 
     public List<ImportError> isDataValid (CustomerImportDTO customerImportDTO);
+
+    public ValidationResult<CustomerImportDTO> validateCustomerImportData(List<CustomerImportDTO> customerImportDTOList);
 
 }

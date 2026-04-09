@@ -8,6 +8,7 @@ import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.dto.CustomerImportDTO;
 import site.easy.to.build.crm.dto.ImportError;
+import site.easy.to.build.crm.dto.ValidationResult;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
@@ -105,6 +106,33 @@ public class CustomerServiceImpl implements CustomerService {
             errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Name is required for customer"));
         }
         return errors;
+    }
+
+    
+    @Override
+    public ValidationResult<CustomerImportDTO> validateCustomerImportData(List<CustomerImportDTO> customerImportDTOList) {
+        ValidationResult<CustomerImportDTO> validationResult = new ValidationResult<>();
+        List<String> seenEmails = new ArrayList<>();
+        
+        for (CustomerImportDTO customerImportDTO : customerImportDTOList) {
+            List<ImportError> errors = isDataValid(customerImportDTO);
+            
+            if (customerImportDTO.getCustomer_email() != null && !customerImportDTO.getCustomer_email().isEmpty()) {
+                if (seenEmails.contains(customerImportDTO.getCustomer_email())) {
+                    errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists in the import list"));
+                } else {
+                    seenEmails.add(customerImportDTO.getCustomer_email());
+                }
+            }
+            
+            if (errors.isEmpty()) {
+                validationResult.getValidItems().add(customerImportDTO);
+            } else {
+                validationResult.getInvalidItems().add(customerImportDTO);
+                validationResult.getErrors().addAll(errors);
+            }
+        }
+        return validationResult;
     }
 
 }
