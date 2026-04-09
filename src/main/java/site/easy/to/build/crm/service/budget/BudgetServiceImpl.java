@@ -61,34 +61,14 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Override
     public List<ImportError> isDataValid(BudgetImportDTO budget, ValidationResult <CustomerImportDTO> customerValidationResult) {
-        
         List<ImportError> errors = new ArrayList<>();
-
 
         if (budget.getBudget() == null || budget.getBudget() <= 0) {
             errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Amount must be a positive number : " + budget.getBudget()));
         }
 
-        List<CustomerImportDTO> validCustomers = customerValidationResult.getValidItems();
-        List<CustomerImportDTO> invalidCustomers = customerValidationResult.getInvalidItems();
-        String customerEmail = budget.getCustomer_email();
-
-        boolean foundInValidCustomers = validCustomers.stream()
-                .anyMatch(c -> Objects.equals(c.getCustomer_email(), customerEmail));
-        boolean foundInInvalidCustomers = invalidCustomers.stream()
-                .anyMatch(c -> Objects.equals(c.getCustomer_email(), customerEmail));
-
-        if (foundInInvalidCustomers) {
-            errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Customer with email " + customerEmail + " is invalid in customer import"));
-        }
-
-        if (!foundInValidCustomers && !foundInInvalidCustomers) {
-            Customer customer = customerService.findByEmail(customerEmail);
-            if (customer == null) {
-                errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Customer with email " + customerEmail + " not found in customer import and database"));
-            }
-        }
-
+        List <ImportError> customerErrors = customerService.isCustomerValid(customerValidationResult, budget.getCustomer_email(), "BUDGET", budget.getNumLigne());
+        errors.addAll(customerErrors);
         return errors;
     }
 

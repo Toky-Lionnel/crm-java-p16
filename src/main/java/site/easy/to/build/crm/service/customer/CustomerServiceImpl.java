@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -150,6 +151,7 @@ public class CustomerServiceImpl implements CustomerService {
         return validationResult;
     }
 
+    
     @Override
     public Customer transformDTOtoEntity(CustomerImportDTO customerImportDTO) {
         Customer customer = new Customer();
@@ -159,6 +161,33 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setCreatedAt(LocalDateTime.now());
         customer.setBudget(BigDecimal.ZERO);
         return customer;
+    }
+
+
+    @Override
+    public List<ImportError> isCustomerValid (ValidationResult<CustomerImportDTO> validationResult, String customerEmail, String nomTable, int numLigne) {
+        List<ImportError> errors = new ArrayList<>();
+
+        List<CustomerImportDTO> validCustomers = validationResult.getValidItems();
+        List<CustomerImportDTO> invalidCustomers = validationResult.getInvalidItems();
+
+        boolean foundInValidCustomers = validCustomers.stream()
+                .anyMatch(c -> Objects.equals(c.getCustomer_email(), customerEmail));
+        boolean foundInInvalidCustomers = invalidCustomers.stream()
+                .anyMatch(c -> Objects.equals(c.getCustomer_email(), customerEmail));
+
+        if (foundInInvalidCustomers) {
+            errors.add(new ImportError(nomTable, numLigne, "Customer with email " + customerEmail + " is invalid in customer import"));
+        }
+
+        if (!foundInValidCustomers && !foundInInvalidCustomers) {
+            Customer customer = findByEmail(customerEmail);
+            if (customer == null) {
+                errors.add(new ImportError(nomTable, numLigne, "Customer with email " + customerEmail + " not found in customer import and database"));
+            }
+        }
+
+        return errors;
     }
 
 }
