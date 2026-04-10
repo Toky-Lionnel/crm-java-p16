@@ -131,5 +131,31 @@ public class ExpenseServiceImpl implements ExpenseService {
         lead.setCreatedAt(dateTime);
         return lead;
     }
+
+    @Override
+    public ExpenseImportDTO transformEntityToDTO(Ticket t) {
+        ExpenseImportDTO dto = new ExpenseImportDTO();
+        dto.setSubject_or_name(t.getSubject());
+        dto.setStatus(t.getStatus());
+        dto.setCustomer_email("copy_" + t.getCustomer().getEmail());
+        dto.setExpense(t.getAmount().doubleValue());
+        dto.setType("Ticket");
+        dto.setCreatedat(t.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        dto.setNumLigne(t.getTicketId());
+        return dto;
+    }
+
+    @Override
+    public ExpenseImportDTO transformEntityToDTO(Lead l) {
+        ExpenseImportDTO dto = new ExpenseImportDTO();
+        dto.setSubject_or_name(l.getName());
+        dto.setStatus(l.getStatus());
+        dto.setCustomer_email("copy_" + l.getCustomer().getEmail());
+        dto.setExpense(l.getAmount().doubleValue());
+        dto.setType("Lead");
+        dto.setCreatedat(l.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        dto.setNumLigne(l.getLeadId());
+        return dto;
+    }
     
 }

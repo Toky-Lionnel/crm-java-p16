@@ -21,4 +21,6 @@ public interface BudgetService {
 
     public Budget transformDTOtoEntity(BudgetImportDTO budgetImportDTO);
 
+    public BudgetImportDTO transformEntityToDTO(Budget b);
+
 }

@@ -14,6 +14,12 @@ public class CustomerImportDTO {
         this.numLigne = numLigne;
     }
 
+
+    public CustomerImportDTO(String customer_email, String customer_name) {
+        this.customer_email = customer_email;
+        this.customer_name = customer_name;
+    }
+
     public String getCustomer_email() {
         return customer_email;
     }

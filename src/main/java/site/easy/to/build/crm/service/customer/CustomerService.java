@@ -35,4 +35,6 @@ public interface CustomerService {
 
     public List<ImportError> isCustomerValid (ValidationResult<CustomerImportDTO> validationResult, String customerEmail, String nomTable, int numLigne);
 
+    public CustomerImportDTO transformEntityToDTO (Customer c);
+    
 }

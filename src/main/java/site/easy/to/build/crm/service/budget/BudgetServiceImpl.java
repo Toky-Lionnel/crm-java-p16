@@ -105,5 +105,10 @@ public class BudgetServiceImpl implements BudgetService {
         return budget;
     }
 
+    @Override
+    public BudgetImportDTO transformEntityToDTO(Budget b) {
+        return new BudgetImportDTO("copy_" + b.getCustomer().getEmail(), b.getAmount().doubleValue(), Integer.valueOf(b.getId()));
+    }
+
 
 }

@@ -15,4 +15,7 @@ public interface ExpenseService {
     
     Ticket transformExpenseDTOToTicket(ExpenseImportDTO expenseImportDTO);
     Lead transformExpenseDTOToLead(ExpenseImportDTO expenseImportDTO);
+
+    ExpenseImportDTO transformEntityToDTO (Ticket t);
+    ExpenseImportDTO transformEntityToDTO (Lead l);
 }

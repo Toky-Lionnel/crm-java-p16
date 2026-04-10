@@ -5,7 +5,6 @@ import jakarta.validation.Validator;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import site.easy.to.build.crm.repository.CustomerRepository;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
@@ -15,7 +14,6 @@ import site.easy.to.build.crm.dto.ValidationResult;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.Ticket;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -203,6 +201,12 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         return errors;
+    }
+
+    
+    @Override
+    public CustomerImportDTO transformEntityToDTO (Customer c) {
+        return new CustomerImportDTO("copy_" + c.getEmail(), c.getName(), c.getCustomerId());
     }
 
 }
