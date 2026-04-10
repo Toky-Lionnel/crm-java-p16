@@ -111,7 +111,7 @@ public class ImportServiceImpl implements ImportService {
 
 
     @SuppressWarnings("unchecked")
-    private List<ValidationResult> validateDataFileName(List<ImportData> importDatas) {
+    private List<ValidationResult> validateData(List<ImportData> importDatas) {
 
         List <ValidationResult> result = new ArrayList();
         ValidationResult<CustomerImportDTO> customerValidationResult = generateCustomerReference(importDatas);
@@ -188,7 +188,7 @@ public class ImportServiceImpl implements ImportService {
             List<ImportRequest> requests = parseJson(json);
             List <ImportData> data = transformData(requests);
 
-            List<ValidationResult> validationResults = validateDataFileName(data);
+            List<ValidationResult> validationResults = validateData(data);
             
             boolean hasErrors = false;
             for (ValidationResult vr : validationResults) {

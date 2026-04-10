@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import site.easy.to.build.crm.dto.CustomerImportDTO;
 import site.easy.to.build.crm.dto.ExpenseImportDTO;
@@ -60,6 +61,16 @@ public class ExpenseServiceImpl implements ExpenseService {
             errors.add(new ImportError("EXPENSE", expenseImportDTO.getNumLigne(), "Type must be either 'Ticket' or 'Lead' but found : " + expenseImportDTO.getType()));
         }
 
+        String createdAt = expenseImportDTO.getCreatedat();
+
+        try {
+            LocalDateTime.parse(createdAt + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        } catch (Exception e) {
+            errors.add(new ImportError("EXPENSE",expenseImportDTO.getNumLigne(), "Format de la date non reconnu , format attendu dd/MM/yyyy , format obtenu : " +createdAt));
+            e.printStackTrace();
+        }
+        
+
         return errors;
     }
 
@@ -97,7 +108,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         ticket.setCustomer(c);
         ticket.setPriority("critical");
         ticket.setAmount(BigDecimal.valueOf(expenseImportDTO.getExpense()));
-        ticket.setCreatedAt(LocalDateTime.now());
+
+        String createdAt = expenseImportDTO.getCreatedat();
+        LocalDateTime dateTime = LocalDateTime.parse(createdAt + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        ticket.setCreatedAt(dateTime);
         return ticket;
     }
 
@@ -111,7 +125,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         lead.setStatus(expenseImportDTO.getStatus());
         lead.setCustomer(c);
         lead.setAmount(BigDecimal.valueOf(expenseImportDTO.getExpense()));
-        lead.setCreatedAt(LocalDateTime.now());
+
+        String createdAt = expenseImportDTO.getCreatedat();
+        LocalDateTime dateTime = LocalDateTime.parse(createdAt + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));        
+        lead.setCreatedAt(dateTime);
         return lead;
     }
     

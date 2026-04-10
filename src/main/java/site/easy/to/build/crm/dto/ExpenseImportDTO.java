@@ -9,6 +9,18 @@ public class ExpenseImportDTO {
     private String status;
     private Double expense;
     private Integer numLigne;
+    
+    public String getCreatedat() {
+        return createdat;
+    }
+
+    public void setCreatedat(String createdat) {
+        this.createdat = createdat;
+    }
+
+    private String createdat;
+
+    
 
     public String getCustomer_email() {
         return customer_email;
