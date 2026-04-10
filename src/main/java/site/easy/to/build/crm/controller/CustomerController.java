@@ -1,7 +1,9 @@
 package site.easy.to.build.crm.controller;
 
+import org.aspectj.apache.bcel.classfile.Module.Export;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,15 +25,17 @@ import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.contract.ContractService;
 import site.easy.to.build.crm.service.customer.CustomerLoginInfoService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.export.ExportService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.AuthenticationUtils;
 import site.easy.to.build.crm.util.AuthorizationUtil;
 import site.easy.to.build.crm.util.EmailTokenUtils;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 @Controller
 @RequestMapping("/employee/customer")
@@ -47,11 +51,12 @@ public class CustomerController {
     private final ContractService contractService;
     private final LeadService leadService;
     private final BudgetService budgetService;
+    private final ExportService exportService;
 
     @Autowired
     public CustomerController(CustomerService customerService, UserService userService, CustomerLoginInfoService customerLoginInfoService,
                               AuthenticationUtils authenticationUtils, GoogleGmailApiService googleGmailApiService, Environment environment,
-                              TicketService ticketService, ContractService contractService, LeadService leadService, BudgetService budgetService) {
+                              TicketService ticketService, ContractService contractService, LeadService leadService, BudgetService budgetService, ExportService exportService) {
         this.customerService = customerService;
         this.userService = userService;
         this.customerLoginInfoService = customerLoginInfoService;
@@ -62,6 +67,7 @@ public class CustomerController {
         this.contractService = contractService;
         this.leadService = leadService;
         this.budgetService = budgetService;
+        this.exportService = exportService;
     }
 
     @GetMapping("/manager/all-customers")
@@ -215,6 +221,22 @@ public class CustomerController {
         }
         return "redirect:/employee/customer/my-customers";
     }
+
+    
+
+
+    @GetMapping(value = "/duplicate-customer/{customerId}", produces = "text/csv")
+    public ResponseEntity<String> exportDataAsCsv(@PathVariable int customerId) {
+        String csv = this.exportService.exportDataToCsv(customerId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=export-" + customerId + ".csv")
+                .contentType(new MediaType("text", "csv"))
+                .body(csv);
+    }
+
+
+
+
 
 
 }

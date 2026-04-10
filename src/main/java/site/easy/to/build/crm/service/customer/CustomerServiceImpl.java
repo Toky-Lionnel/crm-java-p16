@@ -206,7 +206,7 @@ public class CustomerServiceImpl implements CustomerService {
     
     @Override
     public CustomerImportDTO transformEntityToDTO (Customer c) {
-        return new CustomerImportDTO("copy_" + c.getEmail(), c.getName(), c.getCustomerId());
+        return new CustomerImportDTO("copy_" + c.getEmail(), "copy_" + c.getName(), c.getCustomerId());
     }
 
 }
