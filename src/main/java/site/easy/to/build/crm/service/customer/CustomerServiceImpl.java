@@ -144,10 +144,17 @@ public class CustomerServiceImpl implements CustomerService {
             }
         }
 
+        if (validationResult.getValidItems().isEmpty() && validationResult.getInvalidItems().isEmpty()) {
+            return null;
+        }
+
         validationResult.setTotalItems(customerImportDTOList.size());
         validationResult.setValidItemCount(validationResult.getValidItems().size());
         validationResult.setInvalidItemCount(validationResult.getInvalidItems().size());
         validationResult.setNomTable("CUSTOMER");
+        
+
+        
         return validationResult;
     }
 
@@ -167,6 +174,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<ImportError> isCustomerValid (ValidationResult<CustomerImportDTO> validationResult, String customerEmail, String nomTable, int numLigne) {
         List<ImportError> errors = new ArrayList<>();
+
+        if (validationResult == null) {
+            Customer customer = findByEmail(customerEmail);
+            if (customer == null) {
+                errors.add(new ImportError(nomTable, numLigne, "Customer with email " + customerEmail + " not found in database"));
+            }
+            return errors;
+        }
 
         List<CustomerImportDTO> validCustomers = validationResult.getValidItems();
         List<CustomerImportDTO> invalidCustomers = validationResult.getInvalidItems();

@@ -99,7 +99,7 @@ public class ImportServiceImpl implements ImportService {
 
     @SuppressWarnings("unchecked")
     private ValidationResult <CustomerImportDTO> generateCustomerReference (List <ImportData> importDatas) {
-        ValidationResult<CustomerImportDTO> result = new ValidationResult<>();
+        ValidationResult<CustomerImportDTO> result = null;
         for (ImportData t : importDatas) {
             if (t.getTable_name().equalsIgnoreCase("customer")) {
                 result = customerService.validateCustomerImportData((List <CustomerImportDTO>)t.getData());
@@ -115,7 +115,10 @@ public class ImportServiceImpl implements ImportService {
 
         List <ValidationResult> result = new ArrayList();
         ValidationResult<CustomerImportDTO> customerValidationResult = generateCustomerReference(importDatas);
-        result.add(customerValidationResult);
+
+        if (customerValidationResult != null) {
+            result.add(customerValidationResult);
+        }
 
         for (ImportData t : importDatas) {
             if (t.getTable_name().equalsIgnoreCase("budget")) {
