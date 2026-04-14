@@ -4,14 +4,22 @@ public class CustomerImportDTO {
 
     private String customer_email;
     private String customer_name;
-    private Integer numLigne;
+    private Integer num_ligne;
+
+    public Integer getNum_ligne() {
+        return num_ligne;
+    }
+
+    public void setNum_ligne(Integer num_ligne) {
+        this.num_ligne = num_ligne;
+    }
 
     public CustomerImportDTO() {}
 
-    public CustomerImportDTO(String customer_email, String customer_name, Integer numLigne) {
+    public CustomerImportDTO(String customer_email, String customer_name, Integer num_ligne) {
         this.customer_email = customer_email;
         this.customer_name = customer_name;
-        this.numLigne = numLigne;
+        this.num_ligne = num_ligne;
     }
 
 
@@ -36,11 +44,4 @@ public class CustomerImportDTO {
         this.customer_name = customer_name;
     }
 
-    public Integer getNumLigne() {
-        return numLigne;
-    }
-
-    public void setNumLigne(Integer numLigne) {
-        this.numLigne = numLigne;
-    }
 }

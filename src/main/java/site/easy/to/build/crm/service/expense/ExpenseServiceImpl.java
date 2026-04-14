@@ -28,19 +28,19 @@ public class ExpenseServiceImpl implements ExpenseService {
     public List<ImportError> isDataValid(ExpenseImportDTO expenseImportDTO , ValidationResult <CustomerImportDTO> customerValidationResult) {
         List <ImportError> errors = new ArrayList<>();
 
-        List <ImportError> customerErrors = customerService.isCustomerValid(customerValidationResult, expenseImportDTO.getCustomer_email(), "EXPENSE", expenseImportDTO.getNumLigne());
+        List <ImportError> customerErrors = customerService.isCustomerValid(customerValidationResult, expenseImportDTO.getCustomer_email(), "EXPENSE", expenseImportDTO.getNum_ligne());
         errors.addAll(customerErrors);
 
         if (expenseImportDTO.getExpense() == null || expenseImportDTO.getExpense() <= 0) {
-            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNumLigne(), "Amount must be a positive number : " + expenseImportDTO.getExpense()));
+            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNum_ligne(), "Amount must be a positive number : " + expenseImportDTO.getExpense()));
         }
 
         if (expenseImportDTO.getSubject_or_name() == null || expenseImportDTO.getSubject_or_name().isEmpty()) {
-            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNumLigne(), "Subject or Name is required"));
+            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNum_ligne(), "Subject or Name is required"));
         }
     
         if (expenseImportDTO.getType() == null || expenseImportDTO.getType().isEmpty()) {
-            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNumLigne(), "Type is required"));
+            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNum_ligne(), "Type is required"));
         }
 
         String status = expenseImportDTO.getStatus().toLowerCase();
@@ -49,16 +49,16 @@ public class ExpenseServiceImpl implements ExpenseService {
             String [] validStatus = {"open", "assigned", "on-hold", "in-progress", "resolved", "closed", "reopened", "pending-customer-response", "escalated", "archived"};
 
             if (!Arrays.asList(validStatus).contains(status)) {
-                 errors.add(new ImportError("EXPENSE_TICKET", expenseImportDTO.getNumLigne(), "Status must be either 'open', 'assigned', 'on-hold', 'in-progress', 'resolved', 'closed', 'reopened', 'pending-customer-response', 'escalated' or 'archived' , but found : " + status));
+                 errors.add(new ImportError("EXPENSE_TICKET", expenseImportDTO.getNum_ligne(), "Status must be either 'open', 'assigned', 'on-hold', 'in-progress', 'resolved', 'closed', 'reopened', 'pending-customer-response', 'escalated' or 'archived' , but found : " + status));
             }
         } else if (expenseImportDTO.getType().equalsIgnoreCase("lead")) {
             String [] validStatus = {"meeting-to-schedule","scheduled","archived","success","assign-to-sales"};
 
             if (!Arrays.asList(validStatus).contains(status)) {
-                 errors.add(new ImportError("EXPENSE_LEAD", expenseImportDTO.getNumLigne(), "Status must be either 'meeting-to-schedule', 'scheduled', 'archived', 'success' or 'assign-to-sales' , but found : " + status));
+                 errors.add(new ImportError("EXPENSE_LEAD", expenseImportDTO.getNum_ligne(), "Status must be either 'meeting-to-schedule', 'scheduled', 'archived', 'success' or 'assign-to-sales' , but found : " + status));
             }
         } else {
-            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNumLigne(), "Type must be either 'Ticket' or 'Lead' but found : " + expenseImportDTO.getType()));
+            errors.add(new ImportError("EXPENSE", expenseImportDTO.getNum_ligne(), "Type must be either 'Ticket' or 'Lead' but found : " + expenseImportDTO.getType()));
         }
 
         String createdAt = expenseImportDTO.getCreatedat();
@@ -66,7 +66,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         try {
             LocalDateTime.parse(createdAt + " 00:00", DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         } catch (Exception e) {
-            errors.add(new ImportError("EXPENSE",expenseImportDTO.getNumLigne(), "Format de la date non reconnu , format attendu dd/MM/yyyy , format obtenu : " +createdAt));
+            errors.add(new ImportError("EXPENSE",expenseImportDTO.getNum_ligne(), "Format de la date non reconnu , format attendu dd/MM/yyyy , format obtenu : " +createdAt));
             e.printStackTrace();
         }
         
@@ -141,7 +141,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         dto.setExpense(t.getAmount().doubleValue());
         dto.setType("Ticket");
         dto.setCreatedat(t.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        dto.setNumLigne(t.getTicketId());
+        dto.setNum_ligne(t.getTicketId());
         return dto;
     }
 
@@ -154,7 +154,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         dto.setExpense(l.getAmount().doubleValue());
         dto.setType("Lead");
         dto.setCreatedat(l.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        dto.setNumLigne(l.getLeadId());
+        dto.setNum_ligne(l.getLeadId());
         return dto;
     }
     

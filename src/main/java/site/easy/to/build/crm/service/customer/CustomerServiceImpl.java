@@ -111,7 +111,7 @@ public class CustomerServiceImpl implements CustomerService {
         Set<ConstraintViolation<Customer>> violations = validator.validate(customerToValidate);
         for (ConstraintViolation<Customer> violation : violations) {
             String field = violation.getPropertyPath().toString();
-            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), field + " : " + violation.getMessage()));
+            errors.add(new ImportError("CUSTOMER", customerImportDTO.getNum_ligne(), field + " : " + violation.getMessage()));
         }
 
         return errors;
@@ -128,7 +128,7 @@ public class CustomerServiceImpl implements CustomerService {
             
             if (customerImportDTO.getCustomer_email() != null && !customerImportDTO.getCustomer_email().isEmpty()) {
                 if (seenEmails.contains(customerImportDTO.getCustomer_email())) {
-                    errors.add(new ImportError("CUSTOMER", customerImportDTO.getNumLigne(), "Email already exists in the import list : " + customerImportDTO.getCustomer_email()));
+                    errors.add(new ImportError("CUSTOMER", customerImportDTO.getNum_ligne(), "Email already exists in the import list : " + customerImportDTO.getCustomer_email()));
                 } else {
                     seenEmails.add(customerImportDTO.getCustomer_email());
                 }

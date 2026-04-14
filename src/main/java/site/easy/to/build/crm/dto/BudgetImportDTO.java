@@ -3,14 +3,22 @@ package site.easy.to.build.crm.dto;
 public class BudgetImportDTO {
     private String customer_email;
     private Double budget;
-    private Integer numLigne;
+    private Integer num_ligne;
+
+    public Integer getNum_ligne() {
+        return num_ligne;
+    }
+
+    public void setNum_ligne(Integer num_ligne) {
+        this.num_ligne = num_ligne;
+    }
 
     public BudgetImportDTO() {}
 
-    public BudgetImportDTO(String customer_email, Double budget, Integer numLigne) {
+    public BudgetImportDTO(String customer_email, Double budget, Integer num_ligne) {
         this.customer_email = customer_email;
         this.budget = budget;
-        this.numLigne = numLigne;
+        this.num_ligne = num_ligne;
     }
 
     public String getCustomer_email() {
@@ -29,11 +37,5 @@ public class BudgetImportDTO {
         this.budget = budget;
     }
 
-    public Integer getNumLigne() {
-        return numLigne;
-    }
-
-    public void setNumLigne(Integer numLigne) {
-        this.numLigne = numLigne;
-    }
+    
 }

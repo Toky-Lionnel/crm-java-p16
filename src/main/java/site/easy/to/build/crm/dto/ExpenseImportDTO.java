@@ -8,8 +8,16 @@ public class ExpenseImportDTO {
     private String type;
     private String status;
     private Double expense;
-    private Integer numLigne;
+    private Integer num_ligne;
     
+    public Integer getNum_ligne() {
+        return num_ligne;
+    }
+
+    public void setNum_ligne(Integer num_ligne) {
+        this.num_ligne = num_ligne;
+    }
+
     public String getCreatedat() {
         return createdat;
     }
@@ -62,22 +70,15 @@ public class ExpenseImportDTO {
         this.expense = expense;
     }
 
-    public Integer getNumLigne() {
-        return numLigne;
-    }
-
-    public void setNumLigne(Integer numLigne) {
-        this.numLigne = numLigne;
-    }
 
     public ExpenseImportDTO() {}
 
-    public ExpenseImportDTO(String customer_email, String subject_or_name, String type, String status, Double expense, Integer numLigne) {
+    public ExpenseImportDTO(String customer_email, String subject_or_name, String type, String status, Double expense, Integer num_ligne) {
         this.customer_email = customer_email;
         this.subject_or_name = subject_or_name;
         this.type = type;
         this.status = status;
         this.expense = expense;
-        this.numLigne = numLigne;
+        this.num_ligne = num_ligne;
     }
 }

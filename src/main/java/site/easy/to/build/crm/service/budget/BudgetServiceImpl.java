@@ -64,10 +64,10 @@ public class BudgetServiceImpl implements BudgetService {
         List<ImportError> errors = new ArrayList<>();
 
         if (budget.getBudget() == null || budget.getBudget() <= 0) {
-            errors.add(new ImportError("BUDGET", budget.getNumLigne(), "Amount must be a positive number : " + budget.getBudget()));
+            errors.add(new ImportError("BUDGET", budget.getNum_ligne(), "Amount must be a positive number : " + budget.getBudget()));
         }
 
-        List <ImportError> customerErrors = customerService.isCustomerValid(customerValidationResult, budget.getCustomer_email(), "BUDGET", budget.getNumLigne());
+        List <ImportError> customerErrors = customerService.isCustomerValid(customerValidationResult, budget.getCustomer_email(), "BUDGET", budget.getNum_ligne());
         errors.addAll(customerErrors);
         return errors;
     }

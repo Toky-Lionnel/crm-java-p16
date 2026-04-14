@@ -70,7 +70,7 @@ public class ExportServiceImpl implements ExportService {
         if (customer != null) {
             joiner.add(toCsvLine("customer.customer_email", customer.getCustomer_email()));
             joiner.add(toCsvLine("customer.customer_name", customer.getCustomer_name()));
-            joiner.add(toCsvLine("customer.numLigne", customer.getNumLigne()));
+            joiner.add(toCsvLine("customer.num_ligne", customer.getNum_ligne()));
         }
 
         List<ExpenseImportDTO> expenses = data.getExpenseImportDTOList();
@@ -83,7 +83,7 @@ public class ExportServiceImpl implements ExportService {
             joiner.add(toCsvLine(prefix + ".status", expense.getStatus()));
             joiner.add(toCsvLine(prefix + ".expense", expense.getExpense()));
             joiner.add(toCsvLine(prefix + ".createdat", expense.getCreatedat()));
-            joiner.add(toCsvLine(prefix + ".numLigne", expense.getNumLigne()));
+            joiner.add(toCsvLine(prefix + ".num_ligne", expense.getNum_ligne()));
         }
 
         List<BudgetImportDTO> budgets = data.getBudgetImportDTOList();
@@ -92,7 +92,7 @@ public class ExportServiceImpl implements ExportService {
             String prefix = "budgets[" + i + "]";
             joiner.add(toCsvLine(prefix + ".customer_email", budget.getCustomer_email()));
             joiner.add(toCsvLine(prefix + ".budget", budget.getBudget()));
-            joiner.add(toCsvLine(prefix + ".numLigne", budget.getNumLigne()));
+            joiner.add(toCsvLine(prefix + ".num_ligne", budget.getNum_ligne()));
         }
 
         return joiner.toString();
